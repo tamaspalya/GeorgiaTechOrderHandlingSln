@@ -27,5 +27,5 @@ jobs:
     - name: Test
       run: |
         if [ "$(basename $GITHUB_REPOSITORY)" == "Webshop.Order.Persistence.Test" ]; then
-          dotnet test Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal
+          dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal
         fi
