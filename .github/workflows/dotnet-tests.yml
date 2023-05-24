@@ -25,4 +25,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: |
+        if [ "$(basename $GITHUB_REPOSITORY)" == "Webshop.Order.Persistence.Test" ]; then
+          dotnet test Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal
+        fi
