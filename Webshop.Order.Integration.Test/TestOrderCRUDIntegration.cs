@@ -6,9 +6,10 @@ using Webshop.Application.Contracts.Persistence;
 using Webshop.Data.Persistence;
 using Webshop.Domain.AggregateRoots;
 using Webshop.Order.Application.Contracts.Persistence;
+using Webshop.Order.Persistence;
 using Xunit;
 
-namespace Webshop.Order.Persistence.Test.Integration
+namespace Webshop.Order.Integration.Test
 {
     public class TestOrderCRUDIntegration
     {
@@ -18,7 +19,7 @@ namespace Webshop.Order.Persistence.Test.Integration
         public TestOrderCRUDIntegration()
         {
             // Load configuration
-            
+
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
@@ -32,19 +33,19 @@ namespace Webshop.Order.Persistence.Test.Integration
         [Fact]
         public async Task CreateOrder_Success()
         {
-            
+
         }
 
         [Fact]
         public async Task DeleteOrder_Success()
         {
-            
+
         }
 
         [Fact]
         public async Task GetAllOrders_Success()
         {
-            
+
         }
 
         [Fact]
@@ -81,7 +82,7 @@ namespace Webshop.Order.Persistence.Test.Integration
         [Fact]
         public async Task UpdateOrder_Success()
         {
-            
+
         }
 
         #region HelperMethods
