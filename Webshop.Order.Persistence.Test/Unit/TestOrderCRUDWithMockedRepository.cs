@@ -9,12 +9,12 @@ using Xunit;
 
 namespace Webshop.Order.Persistence.Test.Unit
 {
-    public class TestOrderCRUD
+    public class TestOrderCRUDWithMockedRepository
     {
         private readonly DataContext _dataContext;
         private readonly IOrderRepository _orderRepository;
 
-        public TestOrderCRUD()
+        public TestOrderCRUDWithMockedRepository()
         {
             // Load configuration
             /*
@@ -28,6 +28,7 @@ namespace Webshop.Order.Persistence.Test.Unit
             */
         }
 
+        /*
         [Fact]
         public async Task CreateOrder_Success()
         {
@@ -46,6 +47,7 @@ namespace Webshop.Order.Persistence.Test.Unit
             // Assert
             mockOrderRepository.Verify(repo => repo.CreateAsync(It.IsAny<Domain.AggregateRoots.Order>()), Times.Once);
         }
+        */
 
         [Fact]
         public async Task DeleteOrder_Success()

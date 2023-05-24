@@ -9,6 +9,16 @@ namespace Webshop.Domain.AggregateRoots
             //For ORM
         }
 
+        public Order(int customerId, DateTime orderDate, double totalPrice, string orderStatus, int sellerId, int discountId)
+        {
+            CustomerId = customerId;
+            OrderDate = orderDate;
+            TotalPrice = totalPrice;
+            OrderStatus = orderStatus;
+            SellerId = sellerId;
+            DiscountId = discountId;
+        }
+
         public int CustomerId { get; set; }
         public DateTime OrderDate { get; set; }
         public double TotalPrice { get; set; }
