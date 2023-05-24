@@ -19,9 +19,13 @@ namespace Webshop.Order.Persistence
             }
         }
 
-        public Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            using (var connection = dataContext.CreateConnection())
+            {
+                string command = $"delete from {TableName} where id = @id";
+                await connection.ExecuteAsync(command, new { id = id });
+            }
         }
 
         public Task<IEnumerable<Domain.AggregateRoots.Order>> GetAll()

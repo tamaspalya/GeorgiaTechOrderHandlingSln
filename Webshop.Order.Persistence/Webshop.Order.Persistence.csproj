@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.123" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Webshop.Data.Persistence\Webshop.Data.Persistence.csproj" />
+    <ProjectReference Include="..\Webshop.Order.Application\Webshop.Order.Application.csproj" />
+  </ItemGroup>
+
 </Project>
