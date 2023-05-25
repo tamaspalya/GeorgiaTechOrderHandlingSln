@@ -58,7 +58,7 @@ namespace Webshop.Order.Persistence.Test.Unit
             var expectedOrderId = 1;
 
             mockOrderRepository.Setup(repo => repo.DeleteAsync(It.IsAny<int>()))
-                .Returns(Task.CompletedTask)
+                .ReturnsAsync(true) // returns true when deletion is successful
                 .Verifiable();
 
             // Act

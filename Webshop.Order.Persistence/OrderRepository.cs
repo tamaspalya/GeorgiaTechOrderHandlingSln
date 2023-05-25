@@ -23,12 +23,13 @@ namespace Webshop.Order.Persistence
         }
 
 
-        public async Task DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             using (var connection = dataContext.CreateConnection())
             {
                 string command = $"delete from [{TableName}] where id = @id";
-                await connection.ExecuteAsync(command, new { id = id });
+                int rowsAffected = await connection.ExecuteAsync(command, new { id = id });
+                return rowsAffected > 0; // Return true if rowsAffected is greater than 0, indicating successful deletion.
             }
         }
 
