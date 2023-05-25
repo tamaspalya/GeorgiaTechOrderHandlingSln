@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="CustomerService\" />
+    <None Remove="CustomerService\Models\" />
+    <None Remove="CustomerService\Models\Responses\" />
+    <None Remove="CatalogService\" />
+    <None Remove="CatalogService\Models\" />
+    <None Remove="CatalogService\Models\Responses\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CustomerService\" />
+    <Folder Include="CustomerService\Models\" />
+    <Folder Include="CustomerService\Models\Responses\" />
+    <Folder Include="CatalogService\" />
+    <Folder Include="CatalogService\Models\" />
+    <Folder Include="CatalogService\Models\Responses\" />
+  </ItemGroup>
+</Project>
