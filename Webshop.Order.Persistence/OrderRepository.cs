@@ -10,33 +10,62 @@ namespace Webshop.Order.Persistence
         {
         }
 
-        public async Task CreateAsync(Domain.AggregateRoots.Order entity)
+        public async Task<int> CreateAsync(Domain.AggregateRoots.Order entity)
         {
             using (var connection = dataContext.CreateConnection())
             {
-                string command = $"insert into {TableName} (CustomerId, OrderDate, TotalPrice, OrderStatus, SellerId, DiscountId) values (@customerId, @orderDate, @totalPrice, @orderStatus, @sellerId, @discountId)";
-                await connection.ExecuteAsync(command, new { customerId = entity.CustomerId, orderDate = entity.OrderDate, totalPrice = entity.TotalPrice, orderStatus = entity.OrderStatus, sellerId = entity.SellerId, discountId = entity.DiscountId });
+                string command = $@"insert into [{TableName}] (CustomerId, OrderDate, TotalPrice, OrderStatus, SellerId, DiscountId) 
+                            output inserted.id
+                            values (@customerId, @orderDate, @totalPrice, @orderStatus, @sellerId, @discountId)";
+                var id = await connection.ExecuteScalarAsync<int>(command, new { customerId = entity.CustomerId, orderDate = entity.OrderDate, totalPrice = entity.TotalPrice, orderStatus = entity.OrderStatus, sellerId = entity.SellerId, discountId = entity.DiscountId });
+                return id;
             }
         }
 
-        public Task DeleteAsync(int id)
+
+        public async Task DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            using (var connection = dataContext.CreateConnection())
+            {
+                string command = $"delete from [{TableName}] where id = @id";
+                await connection.ExecuteAsync(command, new { id = id });
+            }
         }
 
-        public Task<IEnumerable<Domain.AggregateRoots.Order>> GetAll()
+        public async Task<IEnumerable<Domain.AggregateRoots.Order>> GetAll()
         {
-            throw new NotImplementedException();
+            using (var connection = dataContext.CreateConnection())
+            {
+                string query = $"select * from [{TableName}]";
+                return await connection.QueryAsync<Domain.AggregateRoots.Order>(query);
+            }
         }
 
-        public Task<Domain.AggregateRoots.Order> GetById(int id)
+        public async Task<Domain.AggregateRoots.Order> GetById(int id)
         {
-            throw new NotImplementedException();
+            using (var connection = dataContext.CreateConnection())
+            {
+                string query = $"select * from [{TableName}] where id = @id";
+                return await connection.QuerySingleAsync<Domain.AggregateRoots.Order>(query, new { id = id });
+            }
         }
 
-        public Task UpdateAsync(Domain.AggregateRoots.Order entity)
+        public async Task UpdateAsync(Domain.AggregateRoots.Order entity)
         {
-            throw new NotImplementedException();
+            using (var connection = dataContext.CreateConnection())
+            {
+                string command = $"update [{TableName}] set CustomerId = @customerId, OrderDate = @orderDate, TotalPrice = @totalPrice, OrderStatus = @orderStatus, SellerId = @sellerId, DiscountId = @discountId where Id = @id";
+                await connection.ExecuteAsync(command, new
+                {
+                    id = entity.Id,
+                    customerId = entity.CustomerId,
+                    orderDate = entity.OrderDate,
+                    totalPrice = entity.TotalPrice,
+                    orderStatus = entity.OrderStatus,
+                    sellerId = entity.SellerId,
+                    discountId = entity.DiscountId
+                });
+            }
         }
     }
 }
