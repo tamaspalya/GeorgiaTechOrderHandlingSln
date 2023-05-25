@@ -1,6 +1,3 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
@@ -24,10 +21,14 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Test
+    - name: Test with coverage
       run: |
-        if [ "$(basename $GITHUB_REPOSITORY)" == "Webshop.Order.Persistence.Test" ]; then
-          dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal
+        if [ "$(basename $GITHUB_REPOSITORY)" == "tamaspalya/GeorgiaTechOrderHandlingSln" ]; then
+          dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml
         fi
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./Webshop.Order.Persistence.Test/TestResults/*/coverage.cobertura.xml
+        fail_ci_if_error: true
