@@ -23,7 +23,7 @@ jobs:
       run: dotnet build --no-restore
     - name: Test with coverage
       run: |
-        if [ "$(basename $GITHUB_REPOSITORY)" == "GeorgiaTechOrderHandlingSln" ]; then
+        if [ "$(basename $GITHUB_REPOSITORY)" == "tamaspalya/GeorgiaTechOrderHandlingSln" ]; then
           dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml
         fi
     - name: Upload coverage to Codecov
