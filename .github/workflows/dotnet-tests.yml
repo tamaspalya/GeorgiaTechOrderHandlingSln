@@ -29,3 +29,5 @@ jobs:
         if [ "$(basename $GITHUB_REPOSITORY)" == "Webshop.Order.Persistence.Test" ]; then
           dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal
         fi
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
