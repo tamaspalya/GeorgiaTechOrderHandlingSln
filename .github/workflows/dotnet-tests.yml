@@ -24,11 +24,11 @@ jobs:
     - name: Test with coverage
       run: |
         if [ "$(basename $GITHUB_REPOSITORY)" == "Webshop.Order.Persistence.Test" ]; then
-          dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./coverage/
+          dotnet test GeorgiaTechOrderHandlingSln/Test/Webshop.Order.Persistence.Test/Webshop.Order.Persistence.Test.csproj --configuration Release --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml
         fi
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage/coverage.cobertura.xml
+        file: ./Webshop.Order.Persistence.Test/TestResults/*/coverage.cobertura.xml
         fail_ci_if_error: true
