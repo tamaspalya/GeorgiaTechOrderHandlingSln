@@ -46,17 +46,22 @@ namespace Webshop.Service.CatalogClient
 
             try
             {
+                //Fetch product to see changes
                 var updateResponse = await GetProduct(product.Id);
 
+                //Compare old and updated product
                 if (updateResponse.Result.Equals(product))
                 {
+                    _logger.LogInformation($"Successfully updated product with id: {product.Id}");
                     return true;
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError($"Error: {e}");
+                _logger.LogError($"Error occured while updating product: {e}");
             }
+
+            _logger.LogError($"Failed to update product with id: {product.Id}");
             return false;
         }
     }
