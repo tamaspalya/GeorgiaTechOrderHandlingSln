@@ -14,29 +14,58 @@ namespace Webshop.Service
 
         public async Task<T> GetAsync<T>(string url)
         {
-            var response = await _client.GetAsync(url);
+            try
+            {
+                var response = await _client.GetAsync(url);
 
-            var stringResponse = await response.Content.ReadAsStringAsync();
+                var stringResponse = await response.Content.ReadAsStringAsync();
 
-            return JsonConvert.DeserializeObject<T>(stringResponse);
+                return JsonConvert.DeserializeObject<T>(stringResponse);
+            }
+            catch (Exception ex)
+            {
+                throw new HttpServiceException("Error occurred while trying to send a GET request.", ex);
+            }
         }
 
         public async Task<TOut> UpdateAsync<TIn, TOut>(string url, TIn data)
         {
-            var json = JsonConvert.SerializeObject(data);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            try
+            {
+                var json = JsonConvert.SerializeObject(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _client.PutAsync(url, content);
+                var response = await _client.PutAsync(url, content);
 
-            var stringResponse = await response.Content.ReadAsStringAsync();
+                var stringResponse = await response.Content.ReadAsStringAsync();
 
-            return JsonConvert.DeserializeObject<TOut>(stringResponse);
+                return JsonConvert.DeserializeObject<TOut>(stringResponse);
+            }
+            catch (Exception ex)
+            {
+                throw new HttpServiceException("Error occurred while trying to send an UPDATE request.", ex);
+            }
+            
         }
 
 
-        public Task<HttpResponseMessage> PostAsync(string url, HttpContent content)
+        public async Task<TOut> PostAsync<TIn, TOut>(string url, TIn data)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var json = JsonConvert.SerializeObject(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _client.PostAsync(url, content);
+
+                var stringResponse = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<TOut>(stringResponse);
+            }
+            catch (Exception ex)
+            {
+                throw new HttpServiceException("Error occurred while trying to send a POST request.", ex);
+            }
         }
     }
 }

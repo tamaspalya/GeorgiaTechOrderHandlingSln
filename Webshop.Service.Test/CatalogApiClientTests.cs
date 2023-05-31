@@ -41,8 +41,8 @@ public class CatalogApiClientTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.Equal(_testProduct.Name, response.Result.Name);
-        Assert.Equal(_testProduct.SKU, response.Result.SKU);
+        Assert.Equal(_testProduct.Name, response.Product.Name);
+        Assert.Equal(_testProduct.SKU, response.Product.SKU);
 
         Teardown();
     }
@@ -59,7 +59,7 @@ public class CatalogApiClientTests
         var response = await _client.GetProduct(id);
 
         //Assert
-        Assert.Null(response.Result);
+        Assert.Null(response.Product);
         Teardown();
     }
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Webshop.Service.CatalogClient
+namespace Webshop.Service.CatalogClient.Constants
 {
     public static class CatalogEndpoints
     {
