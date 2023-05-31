@@ -1,11 +1,8 @@
 ﻿using Moq;
-using Xunit;
 using Microsoft.Extensions.Logging;
 using Webshop.Service.CatalogClient;
 using Webshop.Service.CatalogClient.Models;
 using Webshop.Service.CatalogClient.Models.Responses;
-using System;
-using System.Threading.Tasks;
 using Webshop.Service.CatalogClient.Exceptions;
 
 namespace Webshop.Service.Test
