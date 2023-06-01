@@ -9,7 +9,7 @@ namespace Webshop.Service
     public interface IHttpClientService
     {
         Task<T> GetAsync<T>(string url);
-        Task<TOut> PostAsync<TIn, TOut>(string url, TIn content);
+        Task<TOut> PostAsync<TIn, TOut>(string url, TIn data);
         Task<TOut> UpdateAsync<TIn, TOut>(string url, TIn data);
     }
 }

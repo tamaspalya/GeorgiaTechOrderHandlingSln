@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using Webshop.Service;
 using Webshop.Service.CatalogClient;
 using Webshop.Service.CatalogClient.Models;
 
@@ -8,7 +7,7 @@ namespace Webshop.Service.Test.Integration
 {
     public class CatalogApiClientTests
     {
-        private readonly CatalogApiClient _client;
+        private readonly ICatalogApiClient _client;
         private readonly HttpClientService _httpClientService;
         private readonly string _baseUrl = "http://localhost:8084/api";
 

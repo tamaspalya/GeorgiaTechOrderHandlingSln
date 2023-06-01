@@ -2,12 +2,13 @@
 using Webshop.Service.CatalogClient.Constants;
 using Webshop.Service.CatalogClient.Exceptions;
 using Webshop.Service.CatalogClient.Models;
+using Webshop.Service.CatalogClient.Models.Requests;
 using Webshop.Service.CatalogClient.Models.Responses;
 using Webshop.Service.CatalogClient.Models.Responses.Internal;
 
 namespace Webshop.Service.CatalogClient
 {
-    public class CatalogApiClient
+    public class CatalogApiClient: ICatalogApiClient
     {
         private readonly IHttpClientService _client;
         private readonly ILogger<CatalogApiClient> _logger;
@@ -18,6 +19,11 @@ namespace Webshop.Service.CatalogClient
             _client = client;
             _logger = logger;
             _baseUrl = baseUrl;
+        }
+
+        public async Task<CatalogProductResponse> CreateProduct(CreateProductRequest createProductRequest)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<CatalogProductResponse> GetProduct(int id)
@@ -46,7 +52,6 @@ namespace Webshop.Service.CatalogClient
             {
                 throw new CatalogApiClientException($"Error while fetching product with id: {id} from Catalog.", ex);
             }
-            
         }
 
         public async Task<bool> UpdateProduct(ProductDto product)

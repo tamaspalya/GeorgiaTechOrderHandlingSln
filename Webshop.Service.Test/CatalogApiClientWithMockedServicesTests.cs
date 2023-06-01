@@ -12,7 +12,7 @@ namespace Webshop.Service.Test
         private readonly Mock<IHttpClientService> _httpClientServiceMock;
         private readonly Mock<ILogger<CatalogApiClient>> _loggerMock;
         private readonly string _testBaseUrl = "http://testurl.com";
-        private readonly CatalogApiClient _catalogApiClient;
+        private readonly ICatalogApiClient _catalogApiClient;
 
         public CatalogApiClientWithMockedServicesTests()
         {
