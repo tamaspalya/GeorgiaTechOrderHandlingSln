@@ -24,6 +24,7 @@ namespace Webshop.Service.Test.Integration
 
         private void Setup()
         {
+            //Setup
             _testPaymentRequest = new PaymentRequest
             {
                 CardNumber = "1234567890123456",
