@@ -36,6 +36,13 @@ namespace Webshop.Service.CustomerClient
             {
                 var response = await _client.GetAsync<CustomerResponse>($"{_baseUrl}/{CustomerEndpoints.Customers}/{id}");
 
+                if (response == null)
+                {
+                    string errorMessage = $"Response from the API was null.";
+                    _logger.LogError(errorMessage);
+                    throw new NullReferenceException(errorMessage);
+                }
+                
                 if (response.Result != null)
                 {
                     _logger.LogInformation($"Successfully fetched customer with id: {id}.");
@@ -46,7 +53,7 @@ namespace Webshop.Service.CustomerClient
                     };
                 }
 
-                _logger.LogInformation($"Failed to fetch customer with id: {id}.");
+                _logger.LogError($"Failed to fetch customer with id: {id}.");
                 return new GetCustomerResponse
                 {
                     Status = "Fail"

@@ -42,7 +42,7 @@ namespace Webshop.Service.CatalogClient
                     };
                 }
 
-                _logger.LogInformation($"Failed to fetch product with id: {id} from Catalog.");
+                _logger.LogError($"Failed to fetch product with id: {id} from Catalog.");
                 return new CatalogProductResponse
                 {
                     Status = "Fail"

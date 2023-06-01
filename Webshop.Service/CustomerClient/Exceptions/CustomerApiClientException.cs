@@ -8,6 +8,7 @@ namespace Webshop.Service.CustomerClient.Exceptions
 {
     public class CustomerApiClientException: Exception
     {
+
         public CustomerApiClientException(string message, Exception innerException)
         : base(message, innerException)
         {
