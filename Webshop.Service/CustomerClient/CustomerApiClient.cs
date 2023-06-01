@@ -1,14 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Webshop.Service.CatalogClient;
-using Webshop.Service.CatalogClient.Constants;
-using Webshop.Service.CatalogClient.Exceptions;
-using Webshop.Service.CatalogClient.Models.Responses.Internal;
-using Webshop.Service.CatalogClient.Models.Responses;
 using Webshop.Service.CustomerClient.Models;
 using Webshop.Service.CustomerClient.Models.Responses.Internal;
 using Webshop.Service.CustomerClient.Models.Responses;
@@ -40,7 +30,7 @@ namespace Webshop.Service.CustomerClient
                 {
                     string errorMessage = $"Response from the API was null.";
                     _logger.LogError(errorMessage);
-                    throw new NullReferenceException(errorMessage);
+                    throw new ArgumentNullException(errorMessage);
                 }
                 
                 if (response.Result != null)
