@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Webshop.Data.Persistence;
+using Webshop.Domain.AggregateRoots;
 using Webshop.Order.Application.Contracts.Persistence;
 using Webshop.Order.Persistence;
 
@@ -157,7 +158,15 @@ namespace Webshop.Order.Integration.Test
                 TotalPrice = 35.5,
                 OrderStatus = "Shipped",
                 SellerId = 2,
-                DiscountId = 3
+                DiscountId = 3,
+                OrderLineItems = new List<OrderLineItem> 
+                { 
+                    new OrderLineItem 
+                    {
+                        ProductId = 1,
+                        Quantity = 3,
+                    } 
+                }
             };
 
             //Act

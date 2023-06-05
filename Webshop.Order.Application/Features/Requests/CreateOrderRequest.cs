@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Webshop.Domain.Common;
+using static Webshop.Order.Application.Features.Requests.OrderLineItemRequest;
 
 namespace Webshop.Order.Application.Features.Requests
 {
@@ -11,6 +12,7 @@ namespace Webshop.Order.Application.Features.Requests
         public string OrderStatus { get; set; }
         public int SellerId { get; set; }
         public int DiscountId { get; set; }
+        public List<OrderLineItemRequest> OrderLineItems { get; set; }
 
         public class Validator : AbstractValidator<CreateOrderRequest>
         {
@@ -26,6 +28,8 @@ namespace Webshop.Order.Application.Features.Requests
                 RuleFor(r => r)
                     .Must(r => r.CustomerId != r.SellerId)
                     .WithMessage("CustomerId and SellerId must not be the same");
+
+                RuleForEach(r => r.OrderLineItems).SetValidator(new OrderLineItemRequestValidator());
             }
         }
     }

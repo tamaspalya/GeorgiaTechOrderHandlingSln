@@ -18,6 +18,15 @@ namespace Webshop.Order.Persistence
                             output inserted.id
                             values (@customerId, @orderDate, @totalPrice, @orderStatus, @sellerId, @discountId)";
                 var id = await connection.ExecuteScalarAsync<int>(command, new { customerId = entity.CustomerId, orderDate = entity.OrderDate, totalPrice = entity.TotalPrice, orderStatus = entity.OrderStatus, sellerId = entity.SellerId, discountId = entity.DiscountId });
+
+                // Insert the line items after the order is created
+                foreach (var lineItem in entity.OrderLineItems)
+                {
+                    string lineItemCommand = $@"insert into [OrderLineItem] (OrderId, ProductId, Quantity) 
+                            values (@orderId, @productId, @quantity)";
+                    await connection.ExecuteAsync(lineItemCommand, new { orderId = id, productId = lineItem.ProductId, quantity = lineItem.Quantity });
+                }
+
                 return id;
             }
         }
