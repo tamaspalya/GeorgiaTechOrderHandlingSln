@@ -76,10 +76,7 @@ namespace Webshop.Order.Api.Controllers
             {
                 //All inputs are valid, calling customer API
 
-                /*
-                GetProductQuery getProductQuery = new GetProductQuery(request.)
-                var productResult = await _dispatcher.Dispatch()
-                */
+                request.TotalPrice = 0; //Hardcoded TODO: Remove
 
                 //Fetch the buyer
                 var buyerResult = await FetchAndValidateCustomerResult(request.CustomerId, CustomerRoles.Buyer);
@@ -93,6 +90,22 @@ namespace Webshop.Order.Api.Controllers
                 if (!string.IsNullOrEmpty(sellerResult)) 
                 {
                     return Error(sellerResult);
+                }
+
+                // Validate and fetch each product in the order
+                foreach (var orderLineItem in request.OrderLineItems)
+                {
+                    GetProductQuery getProductQuery = new GetProductQuery(orderLineItem.ProductId);
+                    var productResult = await _dispatcher.Dispatch(getProductQuery);
+
+                    if (productResult == null)
+                    {
+                        return Error($"Product with id {orderLineItem.ProductId} not found");
+                    }
+
+                    //TODO: Validate quantity
+
+                    request.TotalPrice += orderLineItem.Quantity * productResult.Value.Price;
                 }
 
 
