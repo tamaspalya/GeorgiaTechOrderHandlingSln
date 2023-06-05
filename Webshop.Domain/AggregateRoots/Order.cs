@@ -9,7 +9,7 @@ namespace Webshop.Domain.AggregateRoots
             //For ORM
         }
 
-        public Order(int customerId, DateTime orderDate, double totalPrice, string orderStatus, int sellerId, int discountId)
+        public Order(int customerId, DateTime orderDate, double totalPrice, string orderStatus, int sellerId, int discountId, List<OrderLineItem> orderLineItems)
         {
             CustomerId = customerId;
             OrderDate = orderDate;
@@ -17,6 +17,7 @@ namespace Webshop.Domain.AggregateRoots
             OrderStatus = orderStatus;
             SellerId = sellerId;
             DiscountId = discountId;
+            OrderLineItems = orderLineItems;
         }
 
         public int CustomerId { get; set; }
@@ -25,5 +26,6 @@ namespace Webshop.Domain.AggregateRoots
         public string OrderStatus { get; set; }
         public int SellerId { get; set; }
         public int DiscountId { get; set; }
+        public List<OrderLineItem> OrderLineItems { get; set; }
     }
 }
