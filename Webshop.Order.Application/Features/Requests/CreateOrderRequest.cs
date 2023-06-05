@@ -22,6 +22,10 @@ namespace Webshop.Order.Application.Features.Requests
                 RuleFor(r => r.OrderStatus).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
                 RuleFor(r => r.SellerId).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
                 RuleFor(r => r.DiscountId).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
+
+                RuleFor(r => r)
+                    .Must(r => r.CustomerId != r.SellerId)
+                    .WithMessage("CustomerId and SellerId must not be the same");
             }
         }
     }

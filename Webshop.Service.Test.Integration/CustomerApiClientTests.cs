@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Moq;
-using Webshop.Service.CatalogClient;
-using Webshop.Service.CatalogClient.Models;
 using Webshop.Service.CustomerClient;
 using Webshop.Service.CustomerClient.Models;
 
@@ -12,14 +10,17 @@ namespace Webshop.Service.Test.Integration
         private readonly ICustomerApiClient _client;
         private readonly HttpClientService _httpClientService;
         private readonly string _baseUrl = "http://localhost:8085/api";
+        private readonly CustomerApiClientOptions _options;
 
         private CustomerDto _testCustomer;
 
         public CustomerApiClientTests()
         {
+            _options = new CustomerApiClientOptions();
+            _options.BaseUrl = _baseUrl;
             var logger = new Mock<ILogger<CustomerApiClient>>();
             _httpClientService = new HttpClientService(new HttpClient());
-            _client = new CustomerApiClient(_httpClientService, logger.Object, _baseUrl);
+            _client = new CustomerApiClient(_httpClientService, logger.Object, _options);
         }
 
         private void Setup()

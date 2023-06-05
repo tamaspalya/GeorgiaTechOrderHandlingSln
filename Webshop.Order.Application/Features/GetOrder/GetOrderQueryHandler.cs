@@ -4,17 +4,16 @@ using Webshop.Application.Contracts;
 using Webshop.Domain.Common;
 using Webshop.Order.Application.Contracts.Persistence;
 using Webshop.Order.Application.Features.Dto;
-using Webshop.Order.Application.Features.GetOrders;
 
 namespace Webshop.Order.Application.Features.GetOrder
 {
     public class GetOrderQueryHandler: IQueryHandler<GetOrderQuery, OrderDto>
     {
-        private ILogger<GetOrdersQueryHandler> _logger;
+        private ILogger<GetOrderQueryHandler> _logger;
         private IMapper _mapper;
         private IOrderRepository _orderRepository;
 
-        public GetOrderQueryHandler(ILogger<GetOrdersQueryHandler> logger, IMapper mapper, IOrderRepository orderRepository)
+        public GetOrderQueryHandler(ILogger<GetOrderQueryHandler> logger, IMapper mapper, IOrderRepository orderRepository)
         {
             _logger = logger;
             _mapper = mapper;

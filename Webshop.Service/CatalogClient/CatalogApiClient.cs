@@ -14,11 +14,11 @@ namespace Webshop.Service.CatalogClient
         private readonly ILogger<CatalogApiClient> _logger;
         private readonly string _baseUrl;
 
-        public CatalogApiClient(IHttpClientService client, ILogger<CatalogApiClient> logger, string baseUrl)
+        public CatalogApiClient(IHttpClientService client, ILogger<CatalogApiClient> logger, CatalogApiClientOptions options)
         {
             _client = client;
             _logger = logger;
-            _baseUrl = baseUrl;
+            _baseUrl = options.BaseUrl;
         }
 
         public async Task<CatalogProductResponse> CreateProduct(CreateProductRequest createProductRequest)

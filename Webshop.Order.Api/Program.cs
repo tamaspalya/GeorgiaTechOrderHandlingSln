@@ -6,6 +6,9 @@ using Webshop.Order.Persistence;
 using MediatR;
 using Webshop.Application.Contracts;
 using Webshop.Order.Application;
+using Webshop.Service.CustomerClient;
+using Webshop.Service;
+using Webshop.Service.CatalogClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,24 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+var options = new CustomerApiClientOptions();
+builder.Configuration.GetSection("CustomerApiClient").Bind(options);
+builder.Services.AddSingleton(options);
+
+var catalogOptions = new CatalogApiClientOptions();
+builder.Configuration.GetSection("CatalogApiClient").Bind(catalogOptions);
+builder.Services.AddSingleton(catalogOptions);
+
+
+// Register HttpClient service
+builder.Services.AddHttpClient<IHttpClientService, HttpClientService>();
+
+// Register API client service
+builder.Services.AddScoped<ICustomerApiClient, CustomerApiClient>();
+builder.Services.AddScoped<ICatalogApiClient, CatalogApiClient>();
+
+
 builder.Services.AddScoped<DataContext, DataContext>();
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());

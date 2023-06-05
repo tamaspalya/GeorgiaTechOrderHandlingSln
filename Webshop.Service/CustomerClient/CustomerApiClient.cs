@@ -13,11 +13,11 @@ namespace Webshop.Service.CustomerClient
         private readonly ILogger<CustomerApiClient> _logger;
         private readonly string _baseUrl;
 
-        public CustomerApiClient(IHttpClientService client, ILogger<CustomerApiClient> logger, string baseUrl)
+        public CustomerApiClient(IHttpClientService client, ILogger<CustomerApiClient> logger, CustomerApiClientOptions options)
         {
             _client = client;
             _logger = logger;
-            _baseUrl = baseUrl;
+            _baseUrl = options.BaseUrl;
         }
 
         public async Task<GetCustomerResponse> GetCustomer(int id)

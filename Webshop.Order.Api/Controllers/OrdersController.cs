@@ -9,6 +9,11 @@ using Webshop.Order.Application.Features.Requests;
 using Webshop.Order.Application.Features.CreateOrder;
 using Webshop.Order.Application.Features.DeleteOrder;
 using Webshop.Order.Application.Features.UpdateOrder;
+using Webshop.Order.Application.ClientFeatures.Customer;
+using Webshop.Order.Application.ClientFeatures.Customer.GetCustomer;
+using MediatR;
+using Webshop.Order.Api.Constants;
+using Webshop.Order.Application.ClientFeatures.Catalog.GetProduct;
 
 namespace Webshop.Order.Api.Controllers
 {
@@ -19,6 +24,9 @@ namespace Webshop.Order.Api.Controllers
         private IDispatcher _dispatcher;
         private IMapper _mapper;
         private ILogger<OrdersController> _logger;
+
+
+
         public OrdersController(IDispatcher dispatcher, IMapper mapper, ILogger<OrdersController> logger)
         {
             _mapper = mapper;
@@ -66,8 +74,31 @@ namespace Webshop.Order.Api.Controllers
             var result = validator.Validate(request);
             if (result.IsValid)
             {
-                Domain.AggregateRoots.Order customer = _mapper.Map<Domain.AggregateRoots.Order>(request);
-                CreateOrderCommand command = new CreateOrderCommand(customer);
+                //All inputs are valid, calling customer API
+
+                /*
+                GetProductQuery getProductQuery = new GetProductQuery(request.)
+                var productResult = await _dispatcher.Dispatch()
+                */
+
+                //Fetch the buyer
+                var buyerResult = await FetchAndValidateCustomerResult(request.CustomerId, CustomerRoles.Buyer);
+                if (!string.IsNullOrEmpty(buyerResult))
+                {
+                    return Error(buyerResult);
+                }
+
+                //Fetch the seller
+                var sellerResult = await FetchAndValidateCustomerResult(request.SellerId, CustomerRoles.Seller);
+                if (!string.IsNullOrEmpty(sellerResult)) 
+                {
+                    return Error(sellerResult);
+                }
+
+
+
+                Domain.AggregateRoots.Order order = _mapper.Map<Domain.AggregateRoots.Order>(request);
+                CreateOrderCommand command = new CreateOrderCommand(order);
                 Result createResult = await _dispatcher.Dispatch(command);
                 return Ok(createResult);
             }
@@ -114,5 +145,27 @@ namespace Webshop.Order.Api.Controllers
                 return Error(result.Errors);
             }
         }
+
+        #region External api methods
+        private async Task<Result<CustomerDto>> FetchCustomer(int customerId)
+        {
+            var getCustomerQuery = new GetCustomerQuery(customerId);
+            return await _dispatcher.Dispatch(getCustomerQuery);
+        }
+
+        private async Task<string> FetchAndValidateCustomerResult(int customerId, string role)
+        {
+            var customerResult = await FetchCustomer(customerId);
+
+            if (customerResult.Failure)
+            {
+                string errorMessage = $"Failed to fetch {role} with id: {customerId} from Customer API.";
+                _logger.LogError(errorMessage);
+                return errorMessage;
+            }
+
+            return string.Empty;
+        }
+        #endregion
     }
 }
