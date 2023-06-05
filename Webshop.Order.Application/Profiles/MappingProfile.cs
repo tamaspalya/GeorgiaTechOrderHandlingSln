@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
-using Webshop.Order.Application.Features.CreateOrder;
 using Webshop.Order.Application.Features.Dto;
-using Webshop.Order.Application.Features.UpdateOrder;
+using Webshop.Order.Application.Features.Requests;
 
 namespace Webshop.Order.Application.Profiles
 {
