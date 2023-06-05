@@ -11,7 +11,6 @@ using Webshop.Order.Application.Features.DeleteOrder;
 using Webshop.Order.Application.Features.UpdateOrder;
 using Webshop.Order.Application.ClientFeatures.Customer;
 using Webshop.Order.Application.ClientFeatures.Customer.GetCustomer;
-using MediatR;
 using Webshop.Order.Api.Constants;
 using Webshop.Order.Application.ClientFeatures.Catalog.GetProduct;
 
@@ -92,6 +91,7 @@ namespace Webshop.Order.Api.Controllers
                     return Error(sellerResult);
                 }
 
+                _logger.LogInformation("Fetching products for order...");
                 // Validate and fetch each product in the order
                 foreach (var orderLineItem in request.OrderLineItems)
                 {
@@ -100,11 +100,14 @@ namespace Webshop.Order.Api.Controllers
 
                     if (productResult == null)
                     {
-                        return Error($"Product with id {orderLineItem.ProductId} not found");
+                        string errorMessage = $"Product with id {orderLineItem.ProductId} not found";
+                        _logger.LogError(errorMessage);
+                        return Error(errorMessage);
                     }
 
                     //TODO: Validate quantity
 
+                    _logger.LogInformation("Adding price of products to order total...");
                     request.TotalPrice += orderLineItem.Quantity * productResult.Value.Price;
                 }
 
