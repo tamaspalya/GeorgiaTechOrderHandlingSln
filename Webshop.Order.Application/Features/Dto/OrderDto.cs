@@ -9,5 +9,6 @@
         public string OrderStatus { get; set; }
         public int SellerId { get; set; }
         public int DiscountId { get; set; }
+        public List<OrderLineItemDto> OrderLineItems { get; set; }
     }
 }

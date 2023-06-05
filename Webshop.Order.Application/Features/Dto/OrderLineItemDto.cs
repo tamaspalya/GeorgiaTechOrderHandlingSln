@@ -1,10 +1,10 @@
-﻿namespace Webshop.Domain.AggregateRoots
+﻿namespace Webshop.Order.Application.Features.Dto
 {
-    public class OrderLineItem
+    public class OrderLineItemDto
     {
         public int Id { get; set; }
-        public int OrderId { get; set; }
         public int ProductId { get; set; }
+        public int OrderId { get; set; }
         public int Quantity { get; set; }
     }
 }

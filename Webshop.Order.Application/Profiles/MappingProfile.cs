@@ -14,6 +14,7 @@ namespace Webshop.Order.Application.Profiles
             CreateMap<Domain.AggregateRoots.Order, CreateOrderRequest>().ReverseMap();
             CreateMap<Domain.AggregateRoots.Order, UpdateOrderRequest>().ReverseMap();
 
+            CreateMap<Domain.AggregateRoots.OrderLineItem, OrderLineItemDto>().ReverseMap();
             CreateMap<Domain.AggregateRoots.OrderLineItem, OrderLineItemRequest>().ReverseMap();
 
             CreateMap<Service.CustomerClient.Models.CustomerDto, CustomerDto>().ReverseMap();
