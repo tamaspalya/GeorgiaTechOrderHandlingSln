@@ -10,14 +10,17 @@ namespace Webshop.Service.Test.Integration
         private readonly ICatalogApiClient _client;
         private readonly HttpClientService _httpClientService;
         private readonly string _baseUrl = "http://localhost:8084/api";
+        private readonly CatalogApiClientOptions _options;
 
         private ProductDto _testProduct;
 
         public CatalogApiClientTests()
         {
+            _options = new CatalogApiClientOptions();
+            _options.BaseUrl = _baseUrl;
             var logger = new Mock<ILogger<CatalogApiClient>>();
             _httpClientService = new HttpClientService(new HttpClient());
-            _client = new CatalogApiClient(_httpClientService, logger.Object, _baseUrl);
+            _client = new CatalogApiClient(_httpClientService, logger.Object, _options);
         }
 
         private void Setup()

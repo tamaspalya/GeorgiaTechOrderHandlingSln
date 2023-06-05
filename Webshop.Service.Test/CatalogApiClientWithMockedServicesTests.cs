@@ -13,12 +13,15 @@ namespace Webshop.Service.Test
         private readonly Mock<ILogger<CatalogApiClient>> _loggerMock;
         private readonly string _testBaseUrl = "http://testurl.com";
         private readonly ICatalogApiClient _catalogApiClient;
+        private readonly CatalogApiClientOptions _options;
 
         public CatalogApiClientWithMockedServicesTests()
         {
+            _options = new CatalogApiClientOptions();
+            _options.BaseUrl = _testBaseUrl;
             _httpClientServiceMock = new Mock<IHttpClientService>();
             _loggerMock = new Mock<ILogger<CatalogApiClient>>();
-            _catalogApiClient = new CatalogApiClient(_httpClientServiceMock.Object, _loggerMock.Object, _testBaseUrl);
+            _catalogApiClient = new CatalogApiClient(_httpClientServiceMock.Object, _loggerMock.Object, _options);
         }
 
         [Fact]
