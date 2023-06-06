@@ -17,18 +17,19 @@ using Webshop.Order.Application.ClientFeatures.Catalog.Requests;
 using Webshop.Domain.AggregateRoots;
 using Webshop.Order.Application.ClientFeatures.Catalog;
 using Webshop.Order.Application.ClientFeatures.Catalog.UpdateProduct;
+using FluentValidation;
+using Webshop.Order.Api.Exceptions;
+using FluentValidation.Results;
 
 namespace Webshop.Order.Api.Controllers
 {
     [Route("api/orders")]
     [ApiController]
-    public class OrdersController: BaseController
+    public class OrdersController : BaseController
     {
         private IDispatcher _dispatcher;
         private IMapper _mapper;
         private ILogger<OrdersController> _logger;
-
-
 
         public OrdersController(IDispatcher dispatcher, IMapper mapper, ILogger<OrdersController> logger)
         {
@@ -73,70 +74,16 @@ namespace Webshop.Order.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
         {
-            CreateOrderRequest.Validator validator = new CreateOrderRequest.Validator();
-            var result = validator.Validate(request);
-            if (result.IsValid)
+            try
             {
-                //All inputs are valid, calling customer API
-
-                //Fetch the buyer
-                var buyerResult = await FetchAndValidateCustomerResult(request.CustomerId, CustomerRoles.Buyer);
-                if (!string.IsNullOrEmpty(buyerResult))
-                {
-                    return Error(buyerResult);
-                }
-
-                //Fetch the seller
-                var sellerResult = await FetchAndValidateCustomerResult(request.SellerId, CustomerRoles.Seller);
-                if (!string.IsNullOrEmpty(sellerResult)) 
-                {
-                    return Error(sellerResult);
-                }
-
-                _logger.LogInformation("Fetching products for order...");
-                // Validate and fetch each product in the order
-                foreach (var orderLineItem in request.OrderLineItems)
-                {
-                    GetProductQuery getProductQuery = new GetProductQuery(orderLineItem.ProductId);
-                    var productResult = await _dispatcher.Dispatch(getProductQuery);
-
-                    if (productResult.Failure)
-                    {
-                        string errorMessage = $"Product with id {orderLineItem.ProductId} not found";
-                        _logger.LogError(errorMessage);
-                        return Error(errorMessage);
-                    }
-
-                    //TODO: Validate quantity
-                    if (productResult.Value.AmountInStock < orderLineItem.Quantity)
-                    {
-                        string errorMessage = $"There are not enough products in stock for product with id: {orderLineItem.ProductId}. Requested quantity: {orderLineItem.Quantity}. Amount in stock: {productResult.Value.AmountInStock}";
-                        _logger.LogError(errorMessage);
-                        return Error(errorMessage);
-                    }
-
-                    if (!await UpdateProductStock(productResult.Value, orderLineItem.Quantity))
-                    {
-                        string errorMessage = "Stock could not be updated.";
-                        _logger.LogError(errorMessage);
-                        return Error(errorMessage);
-                    }
-
-                    _logger.LogInformation("Adding price of products to order total...");
-                    request.TotalPrice += orderLineItem.Quantity * productResult.Value.Price;
-                }
-
-
-
-                Domain.AggregateRoots.Order order = _mapper.Map<Domain.AggregateRoots.Order>(request);
-                CreateOrderCommand command = new CreateOrderCommand(order);
-                Result createResult = await _dispatcher.Dispatch(command);
-                return Ok(createResult);
+                ValidateRequest(request);
+                await ValidateCustomers(request);
+                await ValidateAndFetchProducts(request);
+                return await CreateOrderAsync(request);
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogError(string.Join(",", result.Errors.Select(x => x.ErrorMessage)));
-                return Error(result.Errors);
+                return HandleException(ex);
             }
         }
 
@@ -167,8 +114,8 @@ namespace Webshop.Order.Api.Controllers
             {
                 Domain.AggregateRoots.Order customer = _mapper.Map<Domain.AggregateRoots.Order>(request);
                 UpdateOrderCommand command = new UpdateOrderCommand(customer);
-                Result updateResult = await _dispatcher.Dispatch(command);
-                return Ok(updateResult);
+                Result createResult = await _dispatcher.Dispatch(command);
+                return Ok(createResult);
             }
             else
             {
@@ -228,16 +175,90 @@ namespace Webshop.Order.Api.Controllers
         #endregion
 
         #region Helper methods
-        private bool CheckStockAvailability(int requestedQuantity, int amountInStock)
+
+        private void ValidateRequest(CreateOrderRequest request)
         {
-            if (amountInStock < requestedQuantity)
+            CreateOrderRequest.Validator validator = new CreateOrderRequest.Validator();
+            var result = validator.Validate(request);
+
+            if (!result.IsValid)
             {
-                string errorMessage = $"Stock for product is too low. Requested quantity: {requestedQuantity}. Amount in stock: {amountInStock}";
-                _logger.LogError(errorMessage);
-                return false;
+                throw new ValidationException(result.Errors);
             }
-            return true;
+        }
+
+        private async Task ValidateCustomers(CreateOrderRequest request)
+        {
+            // Fetch and validate the buyer
+            await ValidateCustomer(request.CustomerId, CustomerRoles.Buyer);
+
+            // Fetch and validate the seller
+            await ValidateCustomer(request.SellerId, CustomerRoles.Seller);
+        }
+
+        private async Task ValidateCustomer(int customerId, string role)
+        {
+            var result = await FetchAndValidateCustomerResult(customerId, role);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                throw new CustomerException(result);
+            }
+        }
+
+        private async Task ValidateAndFetchProducts(CreateOrderRequest request)
+        {
+            foreach (var orderLineItemRequest in request.OrderLineItems)
+            {
+                OrderLineItem orderLineItem = _mapper.Map<OrderLineItem>(orderLineItemRequest);
+                var productResult = await ValidateAndFetchProduct(orderLineItem);
+                UpdateOrderPrice(request, orderLineItem, productResult);
+            }
+        }
+
+        private void UpdateOrderPrice(CreateOrderRequest request, OrderLineItem lineItem, Result<ProductDto> productResult)
+        {
+            _logger.LogInformation("Adding price of products to order total...");
+            request.TotalPrice += lineItem.Quantity * productResult.Value.Price;
+        }
+
+        private async Task<Result<ProductDto>> ValidateAndFetchProduct(OrderLineItem lineItem)
+        {
+            GetProductQuery getProductQuery = new GetProductQuery(lineItem.ProductId);
+            var productResult = await _dispatcher.Dispatch(getProductQuery);
+
+            if (productResult.Failure)
+            {
+                throw new ProductNotFoundException(lineItem.ProductId);
+            }
+
+            if (productResult.Value.AmountInStock < lineItem.Quantity)
+            {
+                throw new InsufficientStockException(lineItem.ProductId, lineItem.Quantity, productResult.Value.AmountInStock);
+            }
+
+            if (!await UpdateProductStock(productResult.Value, lineItem.Quantity))
+            {
+                throw new StockUpdateException();
+            }
+            return productResult;
+        }
+
+        private async Task<IActionResult> CreateOrderAsync(CreateOrderRequest request)
+        {
+            Domain.AggregateRoots.Order order = _mapper.Map<Domain.AggregateRoots.Order>(request);
+            CreateOrderCommand command = new CreateOrderCommand(order);
+            Result createResult = await _dispatcher.Dispatch(command);
+
+            return Ok(createResult);
+        }
+
+        private IActionResult HandleException(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return Error(ex.Message);
         }
         #endregion
+
     }
 }
