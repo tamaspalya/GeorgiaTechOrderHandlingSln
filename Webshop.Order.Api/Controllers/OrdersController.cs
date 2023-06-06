@@ -13,18 +13,23 @@ using Webshop.Order.Application.ClientFeatures.Customer;
 using Webshop.Order.Application.ClientFeatures.Customer.GetCustomer;
 using Webshop.Order.Api.Constants;
 using Webshop.Order.Application.ClientFeatures.Catalog.GetProduct;
+using Webshop.Order.Application.ClientFeatures.Catalog.Requests;
+using Webshop.Domain.AggregateRoots;
+using Webshop.Order.Application.ClientFeatures.Catalog;
+using Webshop.Order.Application.ClientFeatures.Catalog.UpdateProduct;
+using FluentValidation;
+using Webshop.Order.Api.Exceptions;
+using FluentValidation.Results;
 
 namespace Webshop.Order.Api.Controllers
 {
     [Route("api/orders")]
     [ApiController]
-    public class OrdersController: BaseController
+    public class OrdersController : BaseController
     {
         private IDispatcher _dispatcher;
         private IMapper _mapper;
         private ILogger<OrdersController> _logger;
-
-
 
         public OrdersController(IDispatcher dispatcher, IMapper mapper, ILogger<OrdersController> logger)
         {
@@ -69,59 +74,16 @@ namespace Webshop.Order.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
         {
-            CreateOrderRequest.Validator validator = new CreateOrderRequest.Validator();
-            var result = validator.Validate(request);
-            if (result.IsValid)
+            try
             {
-                //All inputs are valid, calling customer API
-
-                request.TotalPrice = 0; //Hardcoded TODO: Remove
-
-                //Fetch the buyer
-                var buyerResult = await FetchAndValidateCustomerResult(request.CustomerId, CustomerRoles.Buyer);
-                if (!string.IsNullOrEmpty(buyerResult))
-                {
-                    return Error(buyerResult);
-                }
-
-                //Fetch the seller
-                var sellerResult = await FetchAndValidateCustomerResult(request.SellerId, CustomerRoles.Seller);
-                if (!string.IsNullOrEmpty(sellerResult)) 
-                {
-                    return Error(sellerResult);
-                }
-
-                _logger.LogInformation("Fetching products for order...");
-                // Validate and fetch each product in the order
-                foreach (var orderLineItem in request.OrderLineItems)
-                {
-                    GetProductQuery getProductQuery = new GetProductQuery(orderLineItem.ProductId);
-                    var productResult = await _dispatcher.Dispatch(getProductQuery);
-
-                    if (productResult == null)
-                    {
-                        string errorMessage = $"Product with id {orderLineItem.ProductId} not found";
-                        _logger.LogError(errorMessage);
-                        return Error(errorMessage);
-                    }
-
-                    //TODO: Validate quantity
-
-                    _logger.LogInformation("Adding price of products to order total...");
-                    request.TotalPrice += orderLineItem.Quantity * productResult.Value.Price;
-                }
-
-
-
-                Domain.AggregateRoots.Order order = _mapper.Map<Domain.AggregateRoots.Order>(request);
-                CreateOrderCommand command = new CreateOrderCommand(order);
-                Result createResult = await _dispatcher.Dispatch(command);
-                return Ok(createResult);
+                ValidateRequest(request);
+                await ValidateCustomers(request);
+                await ValidateAndFetchProducts(request);
+                return await CreateOrderAsync(request);
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogError(string.Join(",", result.Errors.Select(x => x.ErrorMessage)));
-                return Error(result.Errors);
+                return HandleException(ex);
             }
         }
 
@@ -182,6 +144,121 @@ namespace Webshop.Order.Api.Controllers
 
             return string.Empty;
         }
+
+        private async Task<bool> UpdateProductStock(ProductDto product, int quantity)
+        {
+            UpdateProductRequest updateProductRequest = _mapper.Map<UpdateProductRequest>(product);
+
+            if (updateProductRequest.AmountInStock == 1)
+            {
+                _logger.LogError("Minimum stock cannot be less than 1.");
+                return false;
+            }
+
+            updateProductRequest.AmountInStock -= quantity;
+
+            UpdateProductRequest.Validator validator = new UpdateProductRequest.Validator();
+            var result = validator.Validate(updateProductRequest);
+            if (result.IsValid)
+            {
+                Service.CatalogClient.Models.ProductDto productToUpdate = _mapper.Map<Service.CatalogClient.Models.ProductDto>(updateProductRequest);
+                UpdateProductCommand command = new UpdateProductCommand(productToUpdate);
+                Result updateResult = await _dispatcher.Dispatch(command);
+                return true;
+            }
+            else
+            {
+                _logger.LogError(string.Join(",", result.Errors.Select(x => x.ErrorMessage)));
+                return false;
+            }
+        }
         #endregion
+
+        #region Helper methods
+
+        private void ValidateRequest(CreateOrderRequest request)
+        {
+            CreateOrderRequest.Validator validator = new CreateOrderRequest.Validator();
+            var result = validator.Validate(request);
+
+            if (!result.IsValid)
+            {
+                throw new ValidationException(result.Errors);
+            }
+        }
+
+        private async Task ValidateCustomers(CreateOrderRequest request)
+        {
+            // Fetch and validate the buyer
+            await ValidateCustomer(request.CustomerId, CustomerRoles.Buyer);
+
+            // Fetch and validate the seller
+            await ValidateCustomer(request.SellerId, CustomerRoles.Seller);
+        }
+
+        private async Task ValidateCustomer(int customerId, string role)
+        {
+            var result = await FetchAndValidateCustomerResult(customerId, role);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                throw new CustomerException(result);
+            }
+        }
+
+        private async Task ValidateAndFetchProducts(CreateOrderRequest request)
+        {
+            foreach (var orderLineItemRequest in request.OrderLineItems)
+            {
+                OrderLineItem orderLineItem = _mapper.Map<OrderLineItem>(orderLineItemRequest);
+                var productResult = await ValidateAndFetchProduct(orderLineItem);
+                UpdateOrderPrice(request, orderLineItem, productResult);
+            }
+        }
+
+        private void UpdateOrderPrice(CreateOrderRequest request, OrderLineItem lineItem, Result<ProductDto> productResult)
+        {
+            _logger.LogInformation("Adding price of products to order total...");
+            request.TotalPrice += lineItem.Quantity * productResult.Value.Price;
+        }
+
+        private async Task<Result<ProductDto>> ValidateAndFetchProduct(OrderLineItem lineItem)
+        {
+            GetProductQuery getProductQuery = new GetProductQuery(lineItem.ProductId);
+            var productResult = await _dispatcher.Dispatch(getProductQuery);
+
+            if (productResult.Failure)
+            {
+                throw new ProductNotFoundException(lineItem.ProductId);
+            }
+
+            if (productResult.Value.AmountInStock < lineItem.Quantity)
+            {
+                throw new InsufficientStockException(lineItem.ProductId, lineItem.Quantity, productResult.Value.AmountInStock);
+            }
+
+            if (!await UpdateProductStock(productResult.Value, lineItem.Quantity))
+            {
+                throw new StockUpdateException();
+            }
+            return productResult;
+        }
+
+        private async Task<IActionResult> CreateOrderAsync(CreateOrderRequest request)
+        {
+            Domain.AggregateRoots.Order order = _mapper.Map<Domain.AggregateRoots.Order>(request);
+            CreateOrderCommand command = new CreateOrderCommand(order);
+            Result createResult = await _dispatcher.Dispatch(command);
+
+            return Ok(createResult);
+        }
+
+        private IActionResult HandleException(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return Error(ex.Message);
+        }
+        #endregion
+
     }
 }
