@@ -18,8 +18,4 @@
     <ProjectReference Include="..\Webshop.Service\Webshop.Service.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ClientFeatures\Catalog\UpdateProduct\" />
-  </ItemGroup>
-
 </Project>

@@ -8,7 +8,7 @@
         public int Price { get; set; }
         public string Currency { get; set; }
         public string? Description { get; set; }
-        public int? AmountInStock { get; set; }
+        public int AmountInStock { get; set; }
         public int? MinStock { get; set; }
 
         public override bool Equals(object obj)
@@ -41,7 +41,7 @@
                 hash = hash * 23 + Price.GetHashCode();
                 hash = hash * 23 + (Currency?.GetHashCode() ?? 0);
                 hash = hash * 23 + (Description?.GetHashCode() ?? 0);
-                hash = hash * 23 + (AmountInStock?.GetHashCode() ?? 0);
+                hash = hash * 23 + (AmountInStock.GetHashCode());
                 hash = hash * 23 + (MinStock?.GetHashCode() ?? 0);
 
                 return hash;

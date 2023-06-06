@@ -20,7 +20,6 @@ namespace Webshop.Order.Application.Features.Requests
             {
                 RuleFor(r => r.CustomerId).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
                 RuleFor(r => r.OrderDate).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
-                RuleFor(r => r.TotalPrice).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
                 RuleFor(r => r.OrderStatus).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
                 RuleFor(r => r.SellerId).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
                 RuleFor(r => r.DiscountId).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(CustomerId)).Code);
@@ -30,6 +29,10 @@ namespace Webshop.Order.Application.Features.Requests
                     .WithMessage("CustomerId and SellerId must not be the same");
 
                 RuleForEach(r => r.OrderLineItems).SetValidator(new OrderLineItemRequestValidator());
+
+                RuleFor(r => r.OrderLineItems)
+                    .Must(lineItems => lineItems.GroupBy(i => i.ProductId).All(g => g.Count() == 1))
+                    .WithMessage("There must not be multiple OrderLineItems with the same ProductId");
             }
         }
     }

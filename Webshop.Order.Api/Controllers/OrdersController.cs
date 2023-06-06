@@ -13,6 +13,10 @@ using Webshop.Order.Application.ClientFeatures.Customer;
 using Webshop.Order.Application.ClientFeatures.Customer.GetCustomer;
 using Webshop.Order.Api.Constants;
 using Webshop.Order.Application.ClientFeatures.Catalog.GetProduct;
+using Webshop.Order.Application.ClientFeatures.Catalog.Requests;
+using Webshop.Domain.AggregateRoots;
+using Webshop.Order.Application.ClientFeatures.Catalog;
+using Webshop.Order.Application.ClientFeatures.Catalog.UpdateProduct;
 
 namespace Webshop.Order.Api.Controllers
 {
@@ -75,8 +79,6 @@ namespace Webshop.Order.Api.Controllers
             {
                 //All inputs are valid, calling customer API
 
-                request.TotalPrice = 0; //Hardcoded TODO: Remove
-
                 //Fetch the buyer
                 var buyerResult = await FetchAndValidateCustomerResult(request.CustomerId, CustomerRoles.Buyer);
                 if (!string.IsNullOrEmpty(buyerResult))
@@ -98,7 +100,7 @@ namespace Webshop.Order.Api.Controllers
                     GetProductQuery getProductQuery = new GetProductQuery(orderLineItem.ProductId);
                     var productResult = await _dispatcher.Dispatch(getProductQuery);
 
-                    if (productResult == null)
+                    if (productResult.Failure)
                     {
                         string errorMessage = $"Product with id {orderLineItem.ProductId} not found";
                         _logger.LogError(errorMessage);
@@ -106,6 +108,19 @@ namespace Webshop.Order.Api.Controllers
                     }
 
                     //TODO: Validate quantity
+                    if (productResult.Value.AmountInStock < orderLineItem.Quantity)
+                    {
+                        string errorMessage = $"There are not enough products in stock for product with id: {orderLineItem.ProductId}. Requested quantity: {orderLineItem.Quantity}. Amount in stock: {productResult.Value.AmountInStock}";
+                        _logger.LogError(errorMessage);
+                        return Error(errorMessage);
+                    }
+
+                    if (!await UpdateProductStock(productResult.Value, orderLineItem.Quantity))
+                    {
+                        string errorMessage = "Stock could not be updated.";
+                        _logger.LogError(errorMessage);
+                        return Error(errorMessage);
+                    }
 
                     _logger.LogInformation("Adding price of products to order total...");
                     request.TotalPrice += orderLineItem.Quantity * productResult.Value.Price;
@@ -152,8 +167,8 @@ namespace Webshop.Order.Api.Controllers
             {
                 Domain.AggregateRoots.Order customer = _mapper.Map<Domain.AggregateRoots.Order>(request);
                 UpdateOrderCommand command = new UpdateOrderCommand(customer);
-                Result createResult = await _dispatcher.Dispatch(command);
-                return Ok(createResult);
+                Result updateResult = await _dispatcher.Dispatch(command);
+                return Ok(updateResult);
             }
             else
             {
@@ -181,6 +196,47 @@ namespace Webshop.Order.Api.Controllers
             }
 
             return string.Empty;
+        }
+
+        private async Task<bool> UpdateProductStock(ProductDto product, int quantity)
+        {
+            UpdateProductRequest updateProductRequest = _mapper.Map<UpdateProductRequest>(product);
+
+            if (updateProductRequest.AmountInStock == 1)
+            {
+                _logger.LogError("Minimum stock cannot be less than 1.");
+                return false;
+            }
+
+            updateProductRequest.AmountInStock -= quantity;
+
+            UpdateProductRequest.Validator validator = new UpdateProductRequest.Validator();
+            var result = validator.Validate(updateProductRequest);
+            if (result.IsValid)
+            {
+                Service.CatalogClient.Models.ProductDto productToUpdate = _mapper.Map<Service.CatalogClient.Models.ProductDto>(updateProductRequest);
+                UpdateProductCommand command = new UpdateProductCommand(productToUpdate);
+                Result updateResult = await _dispatcher.Dispatch(command);
+                return true;
+            }
+            else
+            {
+                _logger.LogError(string.Join(",", result.Errors.Select(x => x.ErrorMessage)));
+                return false;
+            }
+        }
+        #endregion
+
+        #region Helper methods
+        private bool CheckStockAvailability(int requestedQuantity, int amountInStock)
+        {
+            if (amountInStock < requestedQuantity)
+            {
+                string errorMessage = $"Stock for product is too low. Requested quantity: {requestedQuantity}. Amount in stock: {amountInStock}";
+                _logger.LogError(errorMessage);
+                return false;
+            }
+            return true;
         }
         #endregion
     }

@@ -14,6 +14,7 @@ namespace Webshop.Order.Application.Features.Requests
             {
                 RuleFor(r => r.ProductId).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(ProductId)).Code);
                 RuleFor(r => r.Quantity).NotEmpty().WithMessage(Errors.General.ValueIsRequired(nameof(Quantity)).Code);
+                RuleFor(r => r.Quantity).GreaterThan(0).WithMessage("Quantity must be greater than 0");
             }
         }
     }
