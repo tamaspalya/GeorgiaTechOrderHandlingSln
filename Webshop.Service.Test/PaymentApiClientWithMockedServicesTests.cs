@@ -36,7 +36,7 @@ namespace Webshop.Service.Test
             // Arrange
             var paymentRequest = new PaymentRequest
             {
-                // Initialize with your values
+                
             };
 
             var apiResponse = new TransactionResult
@@ -74,7 +74,7 @@ namespace Webshop.Service.Test
             // Arrange
             var paymentRequest = new PaymentRequest
             {
-                // Initialize with your values
+                
             };
 
             _httpClientServiceMock.Setup(s => s.PostAsync<PaymentRequest, TransactionResult>(
@@ -101,7 +101,7 @@ namespace Webshop.Service.Test
             // Arrange
             var paymentRequest = new PaymentRequest
             {
-                // Initialize with your values
+                
             };
 
             var apiResponse = new TransactionResult
