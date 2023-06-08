@@ -20,6 +20,7 @@ using Webshop.Order.Application.ClientFeatures.Catalog.UpdateProduct;
 using FluentValidation;
 using Webshop.Order.Api.Exceptions;
 using FluentValidation.Results;
+using Webshop.Order.Application.Features.GetDiscount;
 
 namespace Webshop.Order.Api.Controllers
 {
@@ -76,9 +77,27 @@ namespace Webshop.Order.Api.Controllers
         {
             try
             {
+                //Validate discount
+                int discountValue = request.DiscountId > 0 ? await ValidateAndFetchDiscount(request.DiscountId) : 0;
+
+                //Validate the order request
                 ValidateRequest(request);
+                // Validate buyer and seller customers (CustomerAPI)
                 await ValidateCustomers(request);
+                // Validate and fetch the products (CatalogAPI)
                 await ValidateAndFetchProducts(request);
+                
+
+                //Apply discount if needed
+                if (discountValue > 0)
+                {
+                    var discountedOrderRequest = ApplyDiscountOnOrderRequest(request, discountValue);
+                    _logger.LogInformation("Creating order with discount...");
+                    return await CreateOrderAsync(discountedOrderRequest);
+                }
+
+                //Create the order (OrderRepository)
+                _logger.LogInformation("Creating order...");
                 return await CreateOrderAsync(request);
             }
             catch (Exception ex)
@@ -86,6 +105,8 @@ namespace Webshop.Order.Api.Controllers
                 return HandleException(ex);
             }
         }
+
+        
 
         [HttpDelete]
         [Route("{id}")]
@@ -204,6 +225,47 @@ namespace Webshop.Order.Api.Controllers
             {
                 throw new CustomerException(result);
             }
+        }
+
+        private CreateOrderRequest ApplyDiscountOnOrderRequest(CreateOrderRequest request, double discountValue)
+        {
+            double discountDecimal = discountValue / 100;
+
+            _logger.LogInformation($"Applying {discountValue}% of discount on order.");
+            request.TotalPrice -= request.TotalPrice * discountDecimal;
+
+            return request;
+        }
+
+        private async Task<int> ValidateAndFetchDiscount(int discountId)
+        {
+            GetDiscountQuery query = new GetDiscountQuery(discountId);
+            var result = await _dispatcher.Dispatch(query);
+
+            if (result.Failure)
+            {
+                string error = "No discount found with the given id.";
+                _logger.LogError(error);
+                throw new Exception(error);
+            }
+
+            int discountValue = result.Value.Value;
+
+            if (discountValue > DiscountValues.Max)
+            {
+                string error = $"Discount value cannot be more than {DiscountValues.Max}";
+                _logger.LogError(error);
+                throw new Exception(error); //TODO create specific exception
+            }
+
+            if (discountValue < DiscountValues.Min)
+            {
+                string error = $"Discount value cannot be less than {DiscountValues.Min}";
+                _logger.LogError(error);
+                throw new Exception(error); //TODO create specific exception
+            }
+
+            return result.Value.Value;
         }
 
         private async Task ValidateAndFetchProducts(CreateOrderRequest request)

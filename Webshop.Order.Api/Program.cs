@@ -20,6 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
 
 var options = new CustomerApiClientOptions();
 builder.Configuration.GetSection("CustomerApiClient").Bind(options);

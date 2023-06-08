@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Webshop.Domain.AggregateRoots;
 using Webshop.Order.Application.ClientFeatures.Catalog;
 using Webshop.Order.Application.ClientFeatures.Catalog.Requests;
 using Webshop.Order.Application.ClientFeatures.Customer;
@@ -22,6 +23,8 @@ namespace Webshop.Order.Application.Profiles
             CreateMap<Service.CatalogClient.Models.ProductDto, ProductDto>().ReverseMap();
             CreateMap<ProductDto, UpdateProductRequest>().ReverseMap();
             CreateMap<Service.CatalogClient.Models.ProductDto, UpdateProductRequest>().ReverseMap();
+
+            CreateMap<Discount, DiscountDto>().ReverseMap();
         }
     }
 }

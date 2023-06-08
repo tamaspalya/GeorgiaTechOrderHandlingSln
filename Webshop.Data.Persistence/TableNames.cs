@@ -10,6 +10,11 @@
         public static class Customer
         {
             public static string CUSTOMERTABLE = "Customer";
-        }                
+        }
+        
+        public static class Discount
+        {
+            public static string DISCOUNTTABLE = "Discount";
+        }
     }
 }

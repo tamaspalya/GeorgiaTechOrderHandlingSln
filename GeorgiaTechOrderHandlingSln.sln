@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Webshop.Service", "Webshop.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Webshop.Service.Test", "Webshop.Service.Test\Webshop.Service.Test.csproj", "{3EF4F365-E3C7-44CA-9050-781CE03DF867}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webshop.Service.Test.Integration", "Webshop.Service.Test.Integration\Webshop.Service.Test.Integration.csproj", "{5354AAD2-7263-4886-9F56-BF14D9B35300}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Webshop.Service.Test.Integration", "Webshop.Service.Test.Integration\Webshop.Service.Test.Integration.csproj", "{5354AAD2-7263-4886-9F56-BF14D9B35300}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
